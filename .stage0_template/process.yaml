@@ -21,23 +21,19 @@ requires:
   - org.docker_host
   - org.docker_org
   - info.name
-  - info.description
-  - info.slug
-  - info.developer_cli
-  - info.mongodb_name
 
 templates:
   - path: "./.github/workflows/docker-push.yml"
     merge: true
-  - path: "./Dockerfile"
-    merge: true
   - path: "./docker-compose.yaml"
+    merge: true
+  - path: "./Dockerfile"
     merge: true
   - path: "./LICENSE"
     merge: true
-  - path: "./README.md.template"
-    output: "./README.md"
-    merge: true
   - path: "./Makefile.template"
     output: "./Makefile"
+    merge: true
+  - path: "./README.md.template"
+    output: "./README.md"
     merge: true

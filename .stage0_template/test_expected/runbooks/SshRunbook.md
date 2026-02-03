@@ -1,7 +1,6 @@
-# Deploy latest Open-WebUI to SPARK
-This script must be run outside of the context of the runbook server. This is a manual runbook.
+# Sample SSH Runbook
 
-This script upgrades the Ollama services on ``spark-478a.tailb0d293.ts.net``
+This runbook uses ssh to remotely execute a command. The script assumes you have configured ssh access to your-host and, your ~/.ssh keys are provided
 
 # Environment Requirements
 ```yaml
@@ -21,10 +20,9 @@ roles: sre
 # Script
 ```sh
 #!/bin/zsh
-set -euo pipefail
 
 # SSH connection configuration from environment variables
-SSH_HOST=""spark-478a.tailb0d293.ts.net""
+SSH_HOST=""your-host""
 SSH_USER="sre"
 SSH_PORT="22"
 
@@ -38,18 +36,10 @@ trap "rm -f $KEY_FILE" EXIT
 # Configure SSH options
 SSH_OPTS=(-i "$KEY_FILE" -p "$SSH_PORT" -o StrictHostKeyChecking=no)
 
-# SSH and use docker to pull and deploy the latest
+# SSH and use docker compose to deploy latest code
 ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" "bash -s" <<'EOF'
-  echo "Starting OpenWebUI Upgrade"
-  docker stop open-webui
-  docker rm open-webui
-  docker pull ghcr.io/open-webui/open-webui:ollama
-  docker run -d -p 8080:8080 --gpus=all \
-    -v open-webui:/app/backend/data \
-    -v open-webui-ollama:/root/.ollama \
-    --name open-webui ghcr.io/open-webui/open-webui:ollama
-  docker image prune -f
-  docker ps
+  ls -altr
+EOF
 ```
 
 # History

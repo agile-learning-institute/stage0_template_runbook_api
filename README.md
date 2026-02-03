@@ -1,53 +1,34 @@
-# Runbooks
+# Runbook API Merge Template
 
-This repo contains the Agile Crafts People project runbooks. This is an implementation of the [Stage0 Runbook System](https://github.com/agile-learning-institute/stage0_runbooks). 
-
-## SRE Runbook Guide
-Welcome, this is where we document our operational processes, i.e. This is where the [./runbooks](./runbooks/) are. Runbooks are just markdown files. To make your runbooks executable with the Runbook Automation tools follow [these guidelines](https://github.com/agile-learning-institute/stage0_runbook_api/blob/main/RUNBOOK.md). 
-
-## Runbook Developer Commands
+## Quick Start
+This is a template to create a custom runbook_api for your system. To use this template, create a new repo using this template, then clone down your new repo, and your system specifications repo, and use the ``make merge`` command as shown below. 
 ```sh
-## Build the custom runbook container
-make container  
-
-## Run the runbooks in Dev mode (Mounts ./runbooks)
-make dev
-
-## Run the runbooks in Deploy mode (Packaged Runbooks)
-make deploy     
-
-## Open the web UI in your browser
-make open   
-
-## Tail the API log files
-make tail
-
-## Shut down containers. 
-make down
+## Merge your specifications with the template
+make merge ../SystemRepo/Specifications
 ```
+and you have a Runbook API repo ready to go, refresh you view of the README for more information, or just run ``make dev`` to start testing runbooks.
 
-## Development
+## Contributing
+See [Template Guide](https://github.com/agile-learning-institute/stage0_runbook_merge/blob/main/TEMPLATE_GUIDE.md) for information about stage0 merge templates. See the [Processing Instructions](./.stage0_template/process.yaml) for details about this template, and [Test Specifications](./.stage0_template/Specifications/) for sample context data required.
 
-How to build a Runbook 
-
+Template Commands
 ```sh
-## Build and start your custom container
-make container && make dev
+## Test the Template using test_expected output
+## Creates ~/tmp folders 
+make test
+## Successful output looks like
+...
+Checking output...
+Only in /Users/you/tmp/testRepo: .git
+Only in /Users/you/tmp/testRepo/configurator: .DS_Store
+Done.
 
-## Edit your runbook as a markdown file in ./runbooks. 
-## ./runbooks/Runbook.md is a empty template
-## ./runbooks/SimpleRunbook.md is a simple example.
+## Clean up temp files from testing
+## Removes tmp folders
+make clean
 
-## Use the WebUI to test your script
-make open  
-
-## Or do it from the cli
-make validate ./runbooks/MyNewRunbook.md
-# or
-make execute ./runbooks/MyNewRunbook.md /
-   DATA='{"env_vars":{"VAR1":"value1"}}'
+## Process this merge template using the provided context path
+## NOTE: Destructive action, will remove .stage0_template 
+## Context path typically ends with ``.Specifications``
+make merge {context path}
 ```
-
-## Additional Resources
-- [Stage0 Runbooks Documentation](https://github.com/agile-learning-institute/stage0_runbooks)
-- [Runbook Format Specification](https://github.com/agile-learning-institute/stage0_runbook_api/blob/main/RUNBOOK.md)
