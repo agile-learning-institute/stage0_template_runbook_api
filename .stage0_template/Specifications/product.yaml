@@ -5,7 +5,7 @@ title: Product and Organization Specifications for template testing
 info:
   name: Mentor Hub
   description: A platform to connect mentors with engineers engaged in a life long learning journey.
-  slug: MentorHub
+  slug: mentorhub
   developer_cli: mh
   db_name: mentor_hub
   base_port: 8383

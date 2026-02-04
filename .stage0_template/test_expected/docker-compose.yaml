@@ -4,7 +4,7 @@ services:
   # Custom Runbook Service (Development Profile)
   ##################################
   runbook-api:
-    image: ghcr.io/agile-learning-institute/MentorHub_runbook_api:latest
+    image: ghcr.io/agile-learning-institute/mentorhub_runbook_api:latest
     container_name: runbook_api
     restart: unless-stopped
     ports:
