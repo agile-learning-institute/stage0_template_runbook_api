@@ -7,7 +7,7 @@ info:
   description: A platform to connect mentors with engineers engaged in a life long learning journey.
   slug: MentorHub
   developer_cli: mh
-  mongodb_name: mentor_hub
+  db_name: mentor_hub
   base_port: 8383
 
 organization:
