@@ -38,6 +38,6 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: {{org.docker_host}}/{{org.docker_org}}/runbook_api:latest
+          tags: {{org.docker_host}}/{{org.docker_org}}/{{info.slug}}_runbook_api:latest
           build-args: |
             GITHUB_TOKEN={% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}

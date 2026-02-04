@@ -1,7 +1,6 @@
-$schema: "https://stage0/schemas/process.schema.yaml"
-$id: "https://stage0/template-configurator-api/process.yaml"
-title: Process file for a MongoDB configurator API template
-version: "1.0"
+$schema: "https://github.com/agile-learning-institute/stage0/blob/main/Schemas/process.schema.yaml"
+$id: "https://github.com/agile-learning-institute/stage0_template_runbook_api/blob/main/.stage0_template/process.yaml"
+title: Process file for a Runbook API Template
 
 environment:
 

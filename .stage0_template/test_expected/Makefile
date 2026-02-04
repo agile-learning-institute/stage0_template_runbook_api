@@ -1,6 +1,6 @@
 .PHONY: help dev deploy down open validate execute get-token container tail
 
-CONTAINER_IMAGE ?= ghcr.io/agile-crafts-people/runbook_api:latest
+CONTAINER_IMAGE ?= ghcr.io/agile-learning-institute/MentorHub_runbook_api:latest
 API_URL ?= http://localhost:8083
 RUNBOOK ?= 
 DATA ?= {"env_vars":{}}

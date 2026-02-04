@@ -1,6 +1,6 @@
 # Runbooks
 
-This repo contains the Agile Crafts People project runbooks. This is an implementation of the [Stage0 Runbook System](https://github.com/agile-learning-institute/stage0_runbooks). 
+This repo contains the Agile Learning Institute project runbooks. This is an implementation of the [Stage0 Runbook System](https://github.com/agile-learning-institute/stage0_runbooks). 
 
 ## SRE Runbook Guide
 Welcome, this is where we document our operational processes, i.e. This is where the [./runbooks](./runbooks/) are. Runbooks are just markdown files. To make your runbooks executable with the Runbook Automation tools follow [these guidelines](https://github.com/agile-learning-institute/stage0_runbook_api/blob/main/RUNBOOK.md). 

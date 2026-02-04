@@ -1,5 +1,5 @@
 FROM ghcr.io/agile-learning-institute/stage0_runbook_api:latest
-LABEL org.opencontainers.image.source="https://github.com/agile-crafts-people/runbook_api"
+LABEL org.opencontainers.image.source="https://github.com/agile-learning-institute/MentorHub_runbook_api"
 
 ##################################
 # Install all dependencies (cached unless base image changes)

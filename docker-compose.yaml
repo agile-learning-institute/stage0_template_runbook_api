@@ -4,7 +4,7 @@ services:
   # Custom Runbook Service (Development Profile)
   ##################################
   runbook-api:
-    image: {{org.docker_host}}/{{org.docker_org}}/runbook_api:latest
+    image: {{org.docker_host}}/{{org.docker_org}}/{{info.slug}}_runbook_api:latest
     container_name: runbook_api
     restart: unless-stopped
     ports:
