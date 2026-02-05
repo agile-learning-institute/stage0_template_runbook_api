@@ -21,47 +21,60 @@ roles: sre
 
 # Script
 ```sh
-#! /bin/zsh
+#!/usr/bin/env zsh
+set -e
 
-# Create umbrella repo
-echo $PRODUCT_YAML > ./Specifications/product.yaml 
-$REPO = yq ./Specifications/product.yaml info.slug 
-$TEMPLATE = agile-learning-institute/stage0_template_umbrella
+# --- Write product spec and parse slug/org ---
+mkdir -p ./Specifications
+echo "$PRODUCT_YAML" > ./Specifications/product.yaml
 
-echo "Creating $REPO from $TEMPLATE "                   && \
-gh repo create $REPO --template $TEMPLATE --private     && \
-echo "Cloning $REPO"                                    && \
-git clone $REPO                                         && \
-cd into $REPO_NAME                                      && \
-echo "Merging $REPO"                                    && \
-make merge ../Specifications                            && \
-echo "Committing Changes to $REPO"                      && \
-git add *                                               && \
-git commit "Template Merge Processing Complete"         && \
-git push && cd ..                                       && \
-echo "Successfully Created Umbrella Repo" || exit 1 "Failed to create umbrella project"
+SLUG=$(yq eval '.info.slug' ./Specifications/product.yaml)
+ORG=$(yq eval '.organization.git_org' ./Specifications/product.yaml)
+REPO="$ORG/$SLUG"
+INITIAL_DIR=$(pwd)
 
-# Create umbrella repo
-$REPO = "runbook_api" 
-$TEMPLATE = agile-learning-institute/stage0_template_runbook_api
+# --- Create and set up umbrella repo ---
+TEMPLATE="agile-learning-institute/stage0_template_umbrella"
+echo "Creating $REPO from $TEMPLATE"
+gh repo create "$REPO" --template "$TEMPLATE" --public --clone || { echo "Failed to create umbrella repo"; exit 1; }
 
-echo "Creating $REPO from $TEMPLATE "                   && \
-gh repo create $REPO --template $TEMPLATE --private     && \
-echo "Cloning $REPO"                                    && \
-git clone $REPO                                         && \
-cd into $REPO_NAME                                      && \
-echo "Merging $REPO"                                    && \
-make merge ../Specifications                            && \
-echo "Committing Changes to $REPO"                      && \
-git add *                                               && \
-git commit "Template Merge Processing Complete"         && \
-git push && cd ..                                       && \
-echo "Successfully Created runbook_api Repo" || exit 1 "Failed to create runbook_api Repo"
+echo "Entering $SLUG and merging specifications"
+cd "$SLUG"
+make merge "$INITIAL_DIR/Specifications" || { echo "Failed to merge umbrella"; exit 1; }
 
-echo "Building and pushing container for CI"
-make container                                          && \
-make push                                               && \
-echo "Container Built and Pushed" || exit 1 "Failed to build and push runbook api container image"
+echo "Building and pushing container for umbrella CI"
+make container && make push || { echo "Failed to build/push umbrella container"; exit 1; }
+echo "Umbrella container built and pushed"
+
+echo "Committing and pushing umbrella repo"
+git add -A
+git commit -m "Template Merge Processing Complete" || { echo "Failed to commit umbrella"; exit 1; }
+git push || { echo "Failed to push umbrella repo"; exit 1; }
+echo "Successfully created umbrella repo: $REPO"
+
+# --- Create and set up runbook_api repo ---
+cd "$INITIAL_DIR"
+REPO="$ORG/${SLUG}_runbook_api"
+TEMPLATE="agile-learning-institute/stage0_template_runbook_api"
+
+echo "Creating $REPO from $TEMPLATE"
+gh repo create "$REPO" --template "$TEMPLATE" --private --clone || { echo "Failed to create runbook_api repo"; exit 1; }
+
+echo "Entering ${SLUG}_runbook_api and merging specifications"
+cd "${SLUG}_runbook_api"
+make merge "$INITIAL_DIR/Specifications" || { echo "Failed to merge runbook_api"; exit 1; }
+
+echo "Building and pushing container for runbook_api CI"
+make container && make push || { echo "Failed to build/push runbook_api container"; exit 1; }
+echo "Runbook API container built and pushed"
+
+echo "Committing and pushing runbook_api repo"
+git add -A
+git commit -m "Template Merge Processing Complete" || { echo "Failed to commit runbook_api"; exit 1; }
+git push || { echo "Failed to push runbook_api repo"; exit 1; }
+echo "Successfully created runbook_api repo: $REPO"
+
+echo "Done. Umbrella: $ORG/$SLUG — Runbook API: $REPO"
 ```
 
 # History

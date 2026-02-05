@@ -1,4 +1,4 @@
-.PHONY: help dev deploy down open validate execute get-token container tail
+.PHONY: help dev deploy down open validate execute get-token container push tail
 
 CONTAINER_IMAGE ?= ghcr.io/agile-learning-institute/mentorhub_runbook_api:latest
 API_URL ?= http://localhost:8384/
@@ -27,6 +27,11 @@ container:
 	@docker build -f Dockerfile -t $(CONTAINER_IMAGE) .
 	@echo "Built: $(CONTAINER_IMAGE)"
 
+push:
+	@echo "Pushing container image: $(CONTAINER_IMAGE)"
+	@docker push $(CONTAINER_IMAGE) 
+	@echo "Pushed: $(CONTAINER_IMAGE)"
+
 dev:
 	@echo "Shutting down centralized services..."
 	@mh down || true
@@ -47,7 +52,7 @@ down:
 
 open:
 	@echo "Opening web UI..."
-	@open -a 'Google Chrome' 'http://localhost:8183' || google-chrome 'http://localhost:8183' || xdg-open 'http://localhost:8183'
+	@open -a 'Google Chrome' 'http://localhost:8384' || google-chrome 'http://localhost:8384' || xdg-open 'http://localhost:8384'
 
 get-token:
 	@curl -s -X POST $(API_URL)/dev-login \
