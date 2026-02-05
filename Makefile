@@ -3,7 +3,7 @@
 help:
 	@echo "  make test             - Run tests using ~/temp folder"
 	@echo "  make clean            - Clean up temporary test files"
-	@echo "  make merge            - Merge templates and remove template configuration"
+	@echo "  make merge <repo_path> <specs_path>  - Merge templates (e.g. make merge . ../Specifications)"
 	@echo "  make diff <filespec>  - Diff temp vs expected for a single file"
 	@echo "  make take <filespec>  - Overwrite expected file with temp file"
 
@@ -31,21 +31,21 @@ clean:
 	rm -rf "$$HOME/tmp/testRepo"
 
 merge:
-	@CONTEXT_PATH="$(firstword $(filter-out $@,$(MAKECMDGOALS)))"; \
-	if [ -z "$$CONTEXT_PATH" ]; then \
-		echo "Usage: make merge /path/to/Specifications"; \
+	@REPO_PATH="$(firstword $(filter-out $@,$(MAKECMDGOALS)))"; \
+	SPECS_PATH="$(word 2,$(filter-out $@,$(MAKECMDGOALS)))"; \
+	if [ -z "$$REPO_PATH" ] || [ -z "$$SPECS_PATH" ]; then \
+		echo "Usage: make merge <repo_path> <specs_path>"; \
+		echo "  e.g. make merge . ../Specifications"; \
+		echo "  From runbooks use host paths, e.g. make merge \"\$$RUNBOOK_EXEC_DIR_HOST/slug\" \"\$$RUNBOOK_EXEC_DIR_HOST/Specifications\""; \
 		exit 1; \
 	fi; \
-	if [ ! -d "$$CONTEXT_PATH" ]; then \
-		echo "Error: $$CONTEXT_PATH does not exist or is not a directory"; \
-		exit 1; \
-	fi; \
-	REPO_PATH="$${MERGE_REPO_HOST:-.}"; \
-	echo "Running merge with specifications from $$CONTEXT_PATH, repo from $$REPO_PATH"; \
+	if [ ! -d "$$REPO_PATH" ]; then echo "Error: repo path does not exist or is not a directory: $$REPO_PATH"; exit 1; fi; \
+	if [ ! -d "$$SPECS_PATH" ]; then echo "Error: specs path does not exist or is not a directory: $$SPECS_PATH"; exit 1; fi; \
+	echo "Running merge: repo=$$REPO_PATH specs=$$SPECS_PATH"; \
 	LOG_LEVEL="$${LOG_LEVEL:-INFO}"; \
 	docker run --rm \
 		-v "$$REPO_PATH:/repo" \
-		-v "$$CONTEXT_PATH:/specifications" \
+		-v "$$SPECS_PATH:/specifications" \
 		-e LOG_LEVEL="$$LOG_LEVEL" \
 		ghcr.io/agile-learning-institute/stage0_runbook_merge:latest
 
