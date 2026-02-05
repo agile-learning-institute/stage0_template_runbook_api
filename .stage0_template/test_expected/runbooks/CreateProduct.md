@@ -4,7 +4,7 @@ This runbook creates the Umbrella and Runbook repo's for a new Stage0 Launch-abl
 
 # Environment Requirements
 ```yaml
-GITHUB_TOKEN: A github classic token with ✅ repo Privileges
+GITHUB_TOKEN: A github classic token with ✅ repo, workflow, and write-package Privileges
 PRODUCT_YAML: The product.yaml content
 ```
 
