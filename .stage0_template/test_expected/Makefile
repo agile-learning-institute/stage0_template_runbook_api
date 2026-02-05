@@ -24,7 +24,7 @@ help:
 
 container:
 	@echo "Building container image: $(CONTAINER_IMAGE)"
-	@docker build -f Dockerfile -t $(CONTAINER_IMAGE) $${BUILD_CONTEXT_HOST:-.}
+	@docker build -f Dockerfile -t $(CONTAINER_IMAGE) .
 	@echo "Built: $(CONTAINER_IMAGE)"
 
 push:
