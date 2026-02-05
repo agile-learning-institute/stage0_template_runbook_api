@@ -1,0 +1,36 @@
+# docker-compose.yaml for Runbook Automation Editing
+services:
+  ##################################
+  # Custom Runbook Service (Development Profile)
+  ##################################
+  runbook-api:
+    image: {{org.docker_host}}/{{org.docker_org}}/{{info.slug}}_runbook_api:latest
+    container_name: runbook_api
+    restart: unless-stopped
+    ports:
+      - "{{info.base_port + 0}}:{{info.base_port + 0}}"
+    environment:
+      API_PORT: {{info.base_port + 0}}
+      RUNBOOKS_DIR: /workspace/runbooks
+      ENABLE_LOGIN: "true"
+      LOGGING_LEVEL: "INFO"
+      JWT_SECRET: ${JWT_SECRET}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      SSH_KEY: ${SSH_KEY:-}
+    volumes:
+      - ${RUNBOOKS_DIR:-./runbooks}:/workspace/runbooks
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  runbook-spa:
+    image: ghcr.io/agile-learning-institute/stage0_runbook_spa:latest
+    container_name: runbook_spa
+    restart: unless-stopped
+    ports:
+      - "{{info.base_port + 1}}:80"
+    environment:
+      API_HOST: runbook-api
+      API_PORT: {{info.base_port + 0}}
+      IDP_LOGIN_URI: ${IDP_LOGIN_URI:-http://localhost:{{info.base_port + 1}}/login}
+    depends_on:
+      runbook-api:
+        condition: service_started

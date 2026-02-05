@@ -1,0 +1,38 @@
+$schema: "https://github.com/agile-learning-institute/stage0/blob/main/Schemas/process.schema.yaml"
+$id: "https://github.com/agile-learning-institute/stage0_template_runbook_api/blob/main/.stage0_template/process.yaml"
+title: Process file for a Runbook API Template
+
+environment:
+
+context:
+  - key: info
+    type: path
+    path: specifications.product.info
+  - key: org
+    type: path
+    path: specifications.product.organization
+
+requires:
+  - org.name
+  - org.founded
+  - org.git_host
+  - org.git_org
+  - org.docker_host
+  - org.docker_org
+  - info.name
+
+templates:
+  - path: "./.github/workflows/docker-push.yml"
+    merge: true
+  - path: "./docker-compose.yaml"
+    merge: true
+  - path: "./Dockerfile"
+    merge: true
+  - path: "./LICENSE"
+    merge: true
+  - path: "./Makefile.template"
+    output: "./Makefile"
+    merge: true
+  - path: "./README.md.template"
+    output: "./README.md"
+    merge: true

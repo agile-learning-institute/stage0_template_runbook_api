@@ -1,0 +1,53 @@
+# Runbooks
+
+This repo contains the {{org.name}} project runbooks. This is an implementation of the [Stage0 Runbook System](https://github.com/agile-learning-institute/stage0_runbooks). 
+
+## SRE Runbook Guide
+Welcome, this is where we document our operational processes, i.e. This is where the [./runbooks](./runbooks/) are. Runbooks are just markdown files. To make your runbooks executable with the Runbook Automation tools follow [these guidelines](https://github.com/agile-learning-institute/stage0_runbook_api/blob/main/RUNBOOK.md). 
+
+## Runbook Developer Commands
+```sh
+## Build the custom runbook container
+make container  
+
+## Run the runbooks in Dev mode (Mounts ./runbooks)
+make dev
+
+## Run the runbooks in Deploy mode (Packaged Runbooks)
+make deploy     
+
+## Open the web UI in your browser
+make open   
+
+## Tail the API log files
+make tail
+
+## Shut down containers. 
+make down
+```
+
+## Development
+
+How to build a Runbook 
+
+```sh
+## Build and start your custom container
+make container && make dev
+
+## Edit your runbook as a markdown file in ./runbooks. 
+## ./runbooks/Runbook.md is a empty template
+## ./runbooks/SimpleRunbook.md is a simple example.
+
+## Use the WebUI to test your script
+make open  
+
+## Or do it from the cli
+make validate ./runbooks/MyNewRunbook.md
+# or
+make execute ./runbooks/MyNewRunbook.md /
+   DATA='{"env_vars":{"VAR1":"value1"}}'
+```
+
+## Additional Resources
+- [Stage0 Runbooks Documentation](https://github.com/agile-learning-institute/stage0_runbooks)
+- [Runbook Format Specification](https://github.com/agile-learning-institute/stage0_runbook_api/blob/main/RUNBOOK.md)
