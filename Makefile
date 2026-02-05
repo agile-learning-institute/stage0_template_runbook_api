@@ -39,8 +39,6 @@ merge:
 		echo "  From runbooks use host paths, e.g. make merge \"\$$RUNBOOK_EXEC_DIR_HOST/slug\" \"\$$RUNBOOK_EXEC_DIR_HOST/Specifications\""; \
 		exit 1; \
 	fi; \
-	if [ ! -d "$$REPO_PATH" ]; then echo "Error: repo path does not exist or is not a directory: $$REPO_PATH"; exit 1; fi; \
-	if [ ! -d "$$SPECS_PATH" ]; then echo "Error: specs path does not exist or is not a directory: $$SPECS_PATH"; exit 1; fi; \
 	echo "Running merge: repo=$$REPO_PATH specs=$$SPECS_PATH"; \
 	LOG_LEVEL="$${LOG_LEVEL:-INFO}"; \
 	docker run --rm \
