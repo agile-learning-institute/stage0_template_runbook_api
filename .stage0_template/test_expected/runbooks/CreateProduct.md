@@ -24,14 +24,25 @@ roles: sre
 #!/usr/bin/env zsh
 set -e
 
+# --- Ensure GITHUB_TOKEN is set (gh and git use it; no login prompts) ---
+if [[ -z "$GITHUB_TOKEN" ]]; then
+  echo "Error: GITHUB_TOKEN is not set." >&2
+  exit 1
+fi
+
 # --- Write product spec and parse slug/org ---
 mkdir -p ./Specifications
 echo "$PRODUCT_YAML" > ./Specifications/product.yaml
 
 SLUG=$(yq eval '.info.slug' ./Specifications/product.yaml)
 ORG=$(yq eval '.organization.git_org' ./Specifications/product.yaml)
+DOCKER_ORG=$(yq eval '.organization.docker_org' ./Specifications/product.yaml)
 REPO="$ORG/$SLUG"
 INITIAL_DIR=$(pwd)
+
+# --- Log in to container registry (ghcr.io) so make push works ---
+echo "Logging in to ghcr.io for container push..."
+echo "$GITHUB_TOKEN" | docker login ghcr.io -u "${GITHUB_USER:-$DOCKER_ORG}" --password-stdin || { echo "Docker login failed (token needs write:packages)"; exit 1; }
 
 # --- Create and set up umbrella repo ---
 TEMPLATE="agile-learning-institute/stage0_template_umbrella"
@@ -49,7 +60,8 @@ echo "Umbrella container built and pushed"
 echo "Committing and pushing umbrella repo"
 git add -A
 git commit -m "Template Merge Processing Complete" || { echo "Failed to commit umbrella"; exit 1; }
-git push || { echo "Failed to push umbrella repo"; exit 1; }
+git remote set-url origin "https://${GITHUB_TOKEN}@github.com/$REPO.git"
+git push origin main || { echo "Failed to push umbrella repo"; exit 1; }
 echo "Successfully created umbrella repo: $REPO"
 
 # --- Create and set up runbook_api repo ---
@@ -71,7 +83,8 @@ echo "Runbook API container built and pushed"
 echo "Committing and pushing runbook_api repo"
 git add -A
 git commit -m "Template Merge Processing Complete" || { echo "Failed to commit runbook_api"; exit 1; }
-git push || { echo "Failed to push runbook_api repo"; exit 1; }
+git remote set-url origin "https://${GITHUB_TOKEN}@github.com/$REPO.git"
+git push origin main || { echo "Failed to push runbook_api repo"; exit 1; }
 echo "Successfully created runbook_api repo: $REPO"
 
 echo "Done. Umbrella: $ORG/$SLUG — Runbook API: $REPO"
