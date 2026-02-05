@@ -43,7 +43,7 @@ merge:
 	echo "Running merge with specifications from $$CONTEXT_PATH"; \
 	LOG_LEVEL="$${LOG_LEVEL:-INFO}"; \
 	docker run --rm \
-		-v "$$(pwd):/repo" \
+		-v ".:/repo" \
 		-v "$$CONTEXT_PATH:/specifications" \
 		-e LOG_LEVEL="$$LOG_LEVEL" \
 		ghcr.io/agile-learning-institute/stage0_runbook_merge:latest
