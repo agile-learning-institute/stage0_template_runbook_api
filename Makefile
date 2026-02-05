@@ -40,10 +40,11 @@ merge:
 		echo "Error: $$CONTEXT_PATH does not exist or is not a directory"; \
 		exit 1; \
 	fi; \
-	echo "Running merge with specifications from $$CONTEXT_PATH"; \
+	REPO_PATH="$${MERGE_REPO_HOST:-.}"; \
+	echo "Running merge with specifications from $$CONTEXT_PATH, repo from $$REPO_PATH"; \
 	LOG_LEVEL="$${LOG_LEVEL:-INFO}"; \
 	docker run --rm \
-		-v ".:/repo" \
+		-v "$$REPO_PATH:/repo" \
 		-v "$$CONTEXT_PATH:/specifications" \
 		-e LOG_LEVEL="$$LOG_LEVEL" \
 		ghcr.io/agile-learning-institute/stage0_runbook_merge:latest
