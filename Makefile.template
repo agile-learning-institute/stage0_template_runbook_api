@@ -47,7 +47,7 @@ down:
 
 open:
 	@echo "Opening web UI..."
-	@open -a 'Google Chrome' 'http://localhost:8183' || google-chrome 'http://localhost:8183' || xdg-open 'http://localhost:8183'
+	@open -a 'Google Chrome' 'http://localhost:{{info.base_port + 1}}' || google-chrome 'http://localhost:{{info.base_port + 1}}' || xdg-open 'http://localhost:{{info.base_port + 1}}'
 
 get-token:
 	@curl -s -X POST $(API_URL)/dev-login \
