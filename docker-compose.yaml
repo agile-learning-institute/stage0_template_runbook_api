@@ -8,9 +8,9 @@ services:
     container_name: runbook_api
     restart: unless-stopped
     ports:
-      - "8182:8182"
+      - "{{info.base_port + 0}}:{{info.base_port + 0}}"
     environment:
-      API_PORT: 8182
+      API_PORT: {{info.base_port + 0}}
       RUNBOOKS_DIR: /workspace/runbooks
       ENABLE_LOGIN: "true"
       LOGGING_LEVEL: "INFO"
@@ -26,11 +26,11 @@ services:
     container_name: runbook_spa
     restart: unless-stopped
     ports:
-      - "8183:80"
+      - "{{info.base_port + 1}}:80"
     environment:
       API_HOST: runbook-api
-      API_PORT: 8182
-      IDP_LOGIN_URI: ${IDP_LOGIN_URI:-http://localhost:8183/login}
+      API_PORT: {{info.base_port + 0}}
+      IDP_LOGIN_URI: ${IDP_LOGIN_URI:-http://localhost:{{info.base_port + 1}}/login}
     depends_on:
       runbook-api:
         condition: service_started

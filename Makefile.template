@@ -29,21 +29,21 @@ container:
 
 dev:
 	@echo "Shutting down centralized services..."
-	@de down || true
+	@{{info.developer_cli}} down || true
 	@echo "Starting local development services..."
 	@export RUNBOOKS_DIR=$$(pwd)/runbooks && export JWT_SECRET=$$(date +%s) && docker compose up -d
 	@$(MAKE) open
 
 deploy:
 	@$(MAKE) down || true
-	@de up runbook
+	@{{info.developer_cli}} up runbook
 	@$(MAKE) open
 	
 down:
 	@echo "Shutting down local containers..."
 	@docker compose down || true
 	@echo "Shutting down centralized services..."
-	@de down || true
+	@{{info.developer_cli}} down || true
 
 open:
 	@echo "Opening web UI..."
