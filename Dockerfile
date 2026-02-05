@@ -48,15 +48,10 @@ RUN apt-get update && \
 ##################################
 # Create runbooks directory (cached unless dependencies change)
 ##################################
-RUN mkdir -p /opt/stage0/runner/runbooks
-
-##################################
-# Set working directory (cached unless directory structure changes)
-##################################
-WORKDIR /opt/stage0/runner
+RUN mkdir -p /runbooks
 
 ##################################
 # Copy runbooks LAST (most frequently changing layer)
 # This is the only layer that rebuilds when runbooks change
 ##################################
-COPY ./runbooks/ /opt/stage0/runner/runbooks/
+COPY ./runbooks/ /runbooks/
