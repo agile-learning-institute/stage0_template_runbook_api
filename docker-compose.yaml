@@ -11,14 +11,16 @@ services:
       - "{{info.base_port + 0}}:{{info.base_port + 0}}"
     environment:
       API_PORT: {{info.base_port + 0}}
-      RUNBOOKS_DIR: /workspace/runbooks
       ENABLE_LOGIN: "true"
       LOGGING_LEVEL: "INFO"
       JWT_SECRET: ${JWT_SECRET}
       GITHUB_TOKEN: ${GITHUB_TOKEN}
       SSH_KEY: ${SSH_KEY:-}
+      MOUNT_DIR: ${MOUNT_DIR}
+      UI_HEADER: "Mentor Hub DEV Runbooks"
     volumes:
-      - ${RUNBOOKS_DIR:-./runbooks}:/workspace/runbooks
+      - ./runbooks:/runbooks
+      - ./execution:/execution
       - /var/run/docker.sock:/var/run/docker.sock
 
   runbook-spa:

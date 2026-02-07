@@ -3,7 +3,7 @@
 help:
 	@echo "  make test             - Run tests using ~/temp folder"
 	@echo "  make clean            - Clean up temporary test files"
-	@echo "  make merge <repo_path> <specs_path>  - Merge templates (e.g. make merge . ../Specifications)"
+	@echo "  make merge <specs_path>  - Merge templates (repo is .); e.g. make merge ../Specifications"
 	@echo "  make diff <filespec>  - Diff temp vs expected for a single file"
 	@echo "  make take <filespec>  - Overwrite expected file with temp file"
 
@@ -31,18 +31,16 @@ clean:
 	rm -rf "$$HOME/tmp/testRepo"
 
 merge:
-	@REPO_PATH="$(firstword $(filter-out $@,$(MAKECMDGOALS)))"; \
-	SPECS_PATH="$(word 2,$(filter-out $@,$(MAKECMDGOALS)))"; \
-	if [ -z "$$REPO_PATH" ] || [ -z "$$SPECS_PATH" ]; then \
-		echo "Usage: make merge <repo_path> <specs_path>"; \
-		echo "  e.g. make merge . ../Specifications"; \
-		echo "  From runbooks use host paths, e.g. make merge \"\$$RUNBOOK_EXEC_DIR_HOST/slug\" \"\$$RUNBOOK_EXEC_DIR_HOST/Specifications\""; \
+	@SPECS_PATH="$(firstword $(filter-out $@,$(MAKECMDGOALS)))"; \
+	if [ -z "$$SPECS_PATH" ]; then \
+		echo "Usage: make merge <specs_path>"; \
+		echo "  e.g. make merge ../Specifications"; \
 		exit 1; \
 	fi; \
-	echo "Running merge: repo=$$REPO_PATH specs=$$SPECS_PATH"; \
+	echo "Running merge: repo=. specs=$$SPECS_PATH"; \
 	LOG_LEVEL="$${LOG_LEVEL:-INFO}"; \
 	docker run --rm \
-		-v "$$REPO_PATH:/repo" \
+		-v ".:/repo" \
 		-v "$$SPECS_PATH:/specifications" \
 		-e LOG_LEVEL="$$LOG_LEVEL" \
 		ghcr.io/agile-learning-institute/stage0_runbook_merge:latest

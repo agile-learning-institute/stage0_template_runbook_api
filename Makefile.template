@@ -36,7 +36,8 @@ dev:
 	@echo "Shutting down centralized services..."
 	@{{info.developer_cli}} down || true
 	@echo "Starting local development services..."
-	@export RUNBOOKS_DIR=$$(pwd)/runbooks && export JWT_SECRET=$$(date +%s) && docker compose up -d
+	@mkdir -p execution
+	@export MOUNT_DIR=$$(pwd)/execution && export JWT_SECRET=$$(date +%s) && docker compose up -d
 	@$(MAKE) open
 
 deploy:
@@ -46,7 +47,7 @@ deploy:
 	
 down:
 	@echo "Shutting down local containers..."
-	@docker compose down || true
+	@export MOUNT_DIR=foo && export JWT_SECRET=bar && docker compose down || true
 	@echo "Shutting down centralized services..."
 	@{{info.developer_cli}} down || true
 
