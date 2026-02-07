@@ -1,17 +1,35 @@
 # Create Product
 
 This runbook creates the Umbrella and Runbook repo's for a new Stage0 Launch-able product. 
+The PRODUCT_YAML environment variable should contain something similar to:
+```yaml
+info:
+  name: Test Product Name
+  description: Test Product Description
+  slug: test
+  developer_cli: te
+  db_name: test_name
+  base_port: 9090
+
+organization:
+  name: Test Organization Name
+  founded: 1234
+  slug: org-slug test
+  git_host: https://github.com
+  git_org: agile-learning-institute
+  docker_host: ghcr.io
+  docker_org: agile-learning-institute
+```
 
 # Environment Requirements
 ```yaml
-GITHUB_TOKEN: A github classic token with ✅ repo, workflow, and write-package Privileges
-PRODUCT_YAML: The product.yaml content
+GITHUB_TOKEN: A github classic token with ✅ repo, workflow, and write-package privileges
+PRODUCT_YAML: The product.yaml content (see above)
 ```
 
 # File System Requirements
 ```yaml
 Input:
-Output:
 ```
 
 # Required Claims
@@ -24,21 +42,26 @@ roles: sre
 #!/usr/bin/env zsh
 set -e
 
-# --- Ensure GITHUB_TOKEN is set (gh and git use it; no login prompts) ---
-if [[ -z "$GITHUB_TOKEN" ]]; then
-  echo "Error: GITHUB_TOKEN is not set." >&2
-  exit 1
-fi
-
 # --- Write product spec and parse slug/org ---
 mkdir -p ./Specifications
 echo "$PRODUCT_YAML" > ./Specifications/product.yaml
+cat ./Specifications/product.yaml
 
+# `RUNBOOK_EXEC_DIR_HOST` is provided by the API (host path for this run’s execution directory).
 SLUG=$(yq eval '.info.slug' ./Specifications/product.yaml)
 ORG=$(yq eval '.organization.git_org' ./Specifications/product.yaml)
 DOCKER_ORG=$(yq eval '.organization.docker_org' ./Specifications/product.yaml)
+DOCKER_HOST=$(yq eval '.organization.docker_host' ./Specifications/product.yaml)
 REPO="$ORG/$SLUG"
 INITIAL_DIR=$(pwd)
+REPO_HOST="$RUNBOOK_EXEC_DIR_HOST"
+SPECS_HOST="$RUNBOOK_EXEC_DIR_HOST/Specifications"
+MERGE_IMAGE="ghcr.io/agile-learning-institute/stage0_runbook_merge:latest"
+TAG=latest
+
+# --- Configure git identity for commits (GitHub noreply so gh/git operations succeed) ---
+git config --global user.name "$ORG"
+git config --global user.email "$DOCKER_ORG@users.noreply.github.com"
 
 # --- Log in to container registry (ghcr.io) so make push works ---
 echo "Logging in to ghcr.io for container push..."
@@ -51,10 +74,17 @@ gh repo create "$REPO" --template "$TEMPLATE" --public --clone || { echo "Failed
 
 echo "Entering $SLUG and merging specifications"
 cd "$SLUG"
-make merge "$INITIAL_DIR/Specifications" || { echo "Failed to merge umbrella"; exit 1; }
+docker run --rm \
+  -v "$REPO_HOST/$SLUG:/repo" \
+  -v "$SPECS_HOST:/specifications" \
+  -e LOG_LEVEL=INFO \
+  "$MERGE_IMAGE" || { echo "Failed to merge umbrella"; exit 1; }
 
-echo "Building and pushing container for umbrella CI"
-make container && make push || { echo "Failed to build/push umbrella container"; exit 1; }
+UMBRELLA_IMAGE="$DOCKER_HOST/$DOCKER_ORG/$SLUG:$TAG"
+echo "Building and pushing $UMBRELLA_IMAGE"
+# Build context: current dir (we are in $SLUG). Legacy builder avoids "driver not connecting" when client runs in container.
+DOCKER_BUILDKIT=0 docker build -t "$UMBRELLA_IMAGE" . || { echo "Failed to build umbrella container"; exit 1; }
+docker push "$UMBRELLA_IMAGE" || { echo "Failed to push umbrella container"; exit 1; }
 echo "Umbrella container built and pushed"
 
 echo "Committing and pushing umbrella repo"
@@ -74,10 +104,17 @@ gh repo create "$REPO" --template "$TEMPLATE" --private --clone || { echo "Faile
 
 echo "Entering ${SLUG}_runbook_api and merging specifications"
 cd "${SLUG}_runbook_api"
-make merge "$INITIAL_DIR/Specifications" || { echo "Failed to merge runbook_api"; exit 1; }
+docker run --rm \
+  -v "$REPO_HOST/${SLUG}_runbook_api:/repo" \
+  -v "$SPECS_HOST:/specifications" \
+  -e LOG_LEVEL=INFO \
+  "$MERGE_IMAGE" || { echo "Failed to merge runbook_api"; exit 1; }
 
-echo "Building and pushing container for runbook_api CI"
-make container && make push || { echo "Failed to build/push runbook_api container"; exit 1; }
+API_IMAGE="$DOCKER_HOST/$DOCKER_ORG/${SLUG}_runbook_api:$TAG"
+echo "Building and pushing $API_IMAGE"
+# Legacy builder avoids "driver not connecting" when client runs in container
+DOCKER_BUILDKIT=0 docker build -f Dockerfile -t "$API_IMAGE" . || { echo "Failed to build runbook_api container"; exit 1; }
+docker push "$API_IMAGE" || { echo "Failed to push runbook_api container"; exit 1; }
 echo "Runbook API container built and pushed"
 
 echo "Committing and pushing runbook_api repo"

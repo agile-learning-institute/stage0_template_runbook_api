@@ -1,18 +1,18 @@
 # Create Service
 
-This runbook creates a GitHub Repo's from the Repo Templates, performs template merge processing, and pushes working code back to each new repo. 
+This runbook creates GitHub repos for a domain from the architecture specification: for each repo in that domain with `type: api` or `type: spa` (skipping `type: spa_ref`), it creates the repo from its template, runs template merge processing, builds/pushes the container when applicable, and pushes the result.
+
+**Context:** The runbook clones the https://github.com/agile-learning-institute/mentorhub repo to get design specifications. `Specifications/architecture.yaml` and `Specifications/product.yaml` are used. `CONTEXT` is a domain name that maps to a section of architecture.yaml. Repos within that domain with `type: api` or `type: spa` are processed; `type: spa_ref` repos are skipped. Created repo names are prefixed with `info.slug` from product.yaml (e.g. `mentorhub_mongodb_api`). Organization and registry values (`git_org`, `docker_host`, `docker_org`) are read from `Specifications/product.yaml`.
 
 # Environment Requirements
 ```yaml
-GITHUB_TOKEN: A github classic token with ✅ repo Privileges
-CONTEXT: The full name of the Context repo that contains Specifications
-SERVICE: The service name from architecture.yaml specification
+GITHUB_TOKEN: A github classic token with ✅ repo, workflow, and write-package privileges
+CONTEXT: Domain name from architecture.yaml (e.g. mongodb)
 ```
 
 # File System Requirements
 ```yaml
 Input:
-Output:
 ```
 
 # Required Claims
@@ -22,31 +22,90 @@ roles: sre
 
 # Script
 ```sh
-#! /bin/zsh
+#!/usr/bin/env zsh
+set -e
 
-# Get the Context repo for Specifications
-git clone $CONTEXT || exit 1 "Couldn't clone context repo $CONTEXT"
+# `RUNBOOK_EXEC_DIR_HOST` is provided by the API (host path for this run’s execution directory).
+INITIAL_DIR=$(pwd)
+REPO_HOST="$RUNBOOK_EXEC_DIR_HOST"
+MERGE_IMAGE="ghcr.io/agile-learning-institute/stage0_runbook_merge:latest"
+TAG=latest
 
-# Use yq to parse Specifications/architecture.yaml find service
-# for each repo in service
-    # Only process api and spa type repo's
-    if service.type not in api, spa next
+# --- Clone mentorhub and resolve specs path ---
+echo "Cloning mentorhub for Specifications..."
+git clone "https://${GITHUB_TOKEN}@github.com/agile-learning-institute/mentorhub.git" mentorhub || { echo "Failed to clone mentorhub"; exit 1; }
+SPECS_DIR="$INITIAL_DIR/mentorhub/Specifications"
+ARCH_FILE="$SPECS_DIR/architecture.yaml"
+PRODUCT_FILE="$SPECS_DIR/product.yaml"
+SPECS_HOST="$REPO_HOST/mentorhub/Specifications"
 
-    # Create repo from template
-    echo "Using GitHub CLI Version $(gh --version)" && \
-    echo "Creating $REPO from $TEMPLATE_REPO" && \
-    gh repo create $REPO --template $TEMPLATE_REPO --private && \
-    echo "Created $REPO" || exit 1 "Create Repo failed!"
+if [[ ! -f "$ARCH_FILE" ]]; then
+  echo "Error: Architecture file not found: $ARCH_FILE" >&2
+  exit 1
+fi
+if [[ ! -f "$PRODUCT_FILE" ]]; then
+  echo "Error: Product file not found: $PRODUCT_FILE" >&2
+  exit 1
+fi
 
-    # Process Merge Template
-    git clone $REPO
-    cd into $REPO_NAME
-    make merge ../$CONTEXT_NAME/Specifications
+# --- Organization and registry from product.yaml ---
+SLUG=$(yq eval '.info.slug' "$PRODUCT_FILE")
+GITHUB_ORG=$(yq eval '.organization.git_org' "$PRODUCT_FILE")
+DOCKER_HOST=$(yq eval '.organization.docker_host' "$PRODUCT_FILE")
+DOCKER_ORG=$(yq eval '.organization.docker_org' "$PRODUCT_FILE")
 
-    # Commit and push changes
-    git add *
-    git commit "Template Merge Processing Complete"
-    git push
+# --- Configure git identity for commits ---
+git config --global user.name "$GITHUB_ORG"
+git config --global user.email "$GITHUB_ORG@users.noreply.github.com"
+
+# --- Log in to container registry ---
+echo "Logging in to $DOCKER_HOST for container push..."
+echo "$GITHUB_TOKEN" | docker login "$DOCKER_HOST" -u "${GITHUB_USER:-$DOCKER_ORG}" --password-stdin || { echo "Docker login failed (token needs write:packages)"; exit 1; }
+
+# --- Resolve repos for this domain (type=api or type=spa only) ---
+REPO_LINES=$(yq eval '.architecture.domains[] | select(.name == env(CONTEXT)) | .repos[] | select(.type == "api" or .type == "spa") | (.name + "|" + .template)' "$ARCH_FILE" 2>/dev/null) || true
+if [[ -z "$REPO_LINES" ]]; then
+  echo "No repos with type api or spa found for domain: $CONTEXT" >&2
+  exit 1
+fi
+
+# --- Process each repo (loop in main shell so exit 1 aborts script) ---
+while IFS= read -r line; do
+  [[ -z "$line" ]] && continue
+  repo_name="${line%%|*}"
+  template="${line##*|}"
+  REPO_FULL_NAME="${SLUG}_${repo_name}"
+  REPO="$GITHUB_ORG/$REPO_FULL_NAME"
+
+  echo "Creating $REPO from template $template"
+  gh repo create "$REPO" --template "$template" --public --clone || { echo "Failed to create $REPO"; exit 1; }
+
+  echo "Entering $REPO_FULL_NAME and merging specifications"
+  cd "$INITIAL_DIR/$REPO_FULL_NAME"
+  docker run --rm \
+    -v "$REPO_HOST/$REPO_FULL_NAME:/repo" \
+    -v "$SPECS_HOST:/specifications" \
+    -e LOG_LEVEL=INFO \
+    "$MERGE_IMAGE" || { echo "Failed to merge $REPO_FULL_NAME"; exit 1; }
+
+  SERVICE_IMAGE="$DOCKER_HOST/$DOCKER_ORG/$REPO_FULL_NAME:$TAG"
+  echo "Building and pushing $SERVICE_IMAGE"
+  # Legacy builder avoids "driver not connecting" when client runs in container
+  DOCKER_BUILDKIT=0 docker build -f Dockerfile -t "$SERVICE_IMAGE" . || { echo "Failed to build $REPO_FULL_NAME container"; exit 1; }
+  docker push "$SERVICE_IMAGE" || { echo "Failed to push $REPO_FULL_NAME container"; exit 1; }
+  echo "Service container built and pushed"
+
+  echo "Committing and pushing $REPO_FULL_NAME"
+  git add -A
+  git commit -m "Template Merge Processing Complete" || { echo "Failed to commit $REPO_FULL_NAME"; exit 1; }
+  git remote set-url origin "https://${GITHUB_TOKEN}@github.com/$REPO.git"
+  git push origin main || { echo "Failed to push $REPO_FULL_NAME"; exit 1; }
+  echo "Successfully created and pushed: $REPO"
+
+  cd "$INITIAL_DIR"
+done <<< "$REPO_LINES"
+
+echo "Done. Processed domain: $CONTEXT"
 ```
 
 # History
