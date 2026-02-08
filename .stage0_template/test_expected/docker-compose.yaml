@@ -8,7 +8,7 @@ services:
     container_name: runbook_api
     restart: unless-stopped
     ports:
-      - "8383:8383"
+      - "127.0.0.1:8383:8383"
     environment:
       API_PORT: 8383
       ENABLE_LOGIN: "true"
@@ -28,7 +28,7 @@ services:
     container_name: runbook_spa
     restart: unless-stopped
     ports:
-      - "8384:80"
+      - "127.0.0.1:8384:80"
     environment:
       API_HOST: runbook-api
       API_PORT: 8383
