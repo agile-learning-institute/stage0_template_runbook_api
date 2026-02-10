@@ -12,6 +12,7 @@ info:
 
 organization:
   name: Agile Learning Institute
+  email: info@agile-learning-institute.com
   founded: 2024
   slug: agile-learning-institute
   git_host: https://github.com
