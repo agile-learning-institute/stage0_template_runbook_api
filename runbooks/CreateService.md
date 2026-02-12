@@ -2,12 +2,12 @@
 
 This runbook creates GitHub repos for a domain from the architecture specification: for each repo in that domain with `type: api` or `type: spa` (skipping `type: spa_ref`), it creates the repo from its template, runs template merge processing, builds/pushes the container when applicable, and pushes the result.
 
-**Context:** The runbook clones the https://github.com/{{org.git_org}}/{{info.slug}} repo to get design specifications. `Specifications/architecture.yaml` and `Specifications/product.yaml` are used. `CONTEXT` is a domain name that maps to a section of architecture.yaml. Repos within that domain with `type: api` or `type: spa` are processed; `type: spa_ref` repos are skipped. Created repo names are prefixed with `info.slug` from product.yaml (e.g. `{{info.slug}}_mongodb_api`). Docker image names come from each repo's `image` field in architecture.yaml; repos without `image` (e.g. libraries) are created and merged but not built or pushed. Organization and registry for git and registry login are read from `Specifications/product.yaml`.
+**SERVICE_NAME:** The runbook clones the https://github.com/{{org.git_org}}/{{info.slug}} repo to get design specifications. `Specifications/architecture.yaml` and `Specifications/product.yaml` are used. `SERVICE_NAME` is a domain name that maps to a section of architecture.yaml. Repos within that domain with `type: api` or `type: spa` are processed; `type: spa_ref` repos are skipped. Created repo names are prefixed with `info.slug` from product.yaml (e.g. `{{info.slug}}_mongodb_api`). Docker image names come from each repo's `image` field in architecture.yaml; repos without `image` (e.g. libraries) are created and merged but not built or pushed. Organization and registry for git and registry login are read from `Specifications/product.yaml`.
 
 # Environment Requirements
 ```yaml
 GITHUB_TOKEN: A github classic token with ✅ repo, workflow, and write-package privileges
-CONTEXT: Domain name from architecture.yaml (e.g. mongodb)
+SERVICE_NAME: Domain name from architecture.yaml (e.g. mongodb)
 ```
 
 # File System Requirements
@@ -52,8 +52,8 @@ echo "Logging in to $DOCKER_HOST for container push..."
 echo "$GITHUB_TOKEN" | docker login "$DOCKER_HOST" -u "${GITHUB_USER:-$DOCKER_ORG}" --password-stdin || { echo "Docker login failed (token needs write:packages)"; exit 1; }
 
 # --- Repos for this domain (type=api or type=spa): name|template|image (image empty if not set) ---
-REPO_LINES=$(yq eval '.architecture.domains[] | select(.name == env(CONTEXT)) | .repos[] | select(.type == "api" or .type == "spa") | (.name + "|" + .template + "|" + (.image // ""))' "$ARCH_FILE" 2>/dev/null) || true
-[[ -n "$REPO_LINES" ]] || { echo "No repos with type api or spa found for domain: $CONTEXT" >&2; exit 1; }
+REPO_LINES=$(yq eval '.architecture.domains[] | select(.name == env(SERVICE_NAME)) | .repos[] | select(.type == "api" or .type == "spa") | (.name + "|" + .template + "|" + (.image // ""))' "$ARCH_FILE" 2>/dev/null) || true
+[[ -n "$REPO_LINES" ]] || { echo "No repos with type api or spa found for domain: $SERVICE_NAME" >&2; exit 1; }
 
 while IFS= read -r line; do
   [[ -n "$line" ]] || continue
@@ -73,6 +73,7 @@ while IFS= read -r line; do
     -v "$REPO_HOST/$REPO_FULL_NAME:/repo" \
     -v "$SPECS_HOST:/specifications" \
     -e LOG_LEVEL=INFO \
+    -e SERVICE_NAME=$SERVICE_NAME \
     "$MERGE_IMAGE" || { echo "Failed to merge $REPO_FULL_NAME"; exit 1; }
 
   if [[ -n "$image" ]]; then
@@ -93,7 +94,7 @@ while IFS= read -r line; do
   cd "$INITIAL_DIR"
 done <<< "$REPO_LINES"
 
-echo "Done. Processed domain: $CONTEXT"
+echo "Done. Processed domain: $SERVICE_NAME"
 ```
 
 # History
