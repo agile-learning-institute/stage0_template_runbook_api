@@ -1,4 +1,4 @@
-.PHONY: help dev deploy down open validate execute get-token container push tail
+.PHONY: help dev deploy down open validate execute get-token container push build-publish tail
 
 CONTAINER_IMAGE ?= ghcr.io/agile-learning-institute/mentorhub_runbook_api:latest
 API_URL ?= http://localhost:8384/
@@ -24,13 +24,15 @@ help:
 
 container:
 	@echo "Building container image: $(CONTAINER_IMAGE)"
-	@docker build -f Dockerfile -t $(CONTAINER_IMAGE) .
+	@DOCKER_BUILDKIT=0 docker build -f Dockerfile -t $(CONTAINER_IMAGE) .
 	@echo "Built: $(CONTAINER_IMAGE)"
 
 push:
 	@echo "Pushing container image: $(CONTAINER_IMAGE)"
 	@docker push $(CONTAINER_IMAGE) 
 	@echo "Pushed: $(CONTAINER_IMAGE)"
+
+build-publish: container push
 
 dev:
 	@echo "Shutting down centralized services..."
