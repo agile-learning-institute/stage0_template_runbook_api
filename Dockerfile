@@ -72,3 +72,4 @@ RUN mkdir -p /runbooks
 # This is the only layer that rebuilds when runbooks change
 ##################################
 COPY ./runbooks/ /runbooks/
+RUN chmod -R a+w /runbooks
