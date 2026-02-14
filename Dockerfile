@@ -28,6 +28,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         gh \
         docker-ce-cli \
+        make \
         openssh-client \
         jq && \
     # Install Docker Buildx
@@ -41,6 +42,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     gh --version && \
     docker --version && \
+    make --version && \
     docker buildx version && \
     yq --version && \
     jq --version
