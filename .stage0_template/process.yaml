@@ -38,3 +38,5 @@ templates:
     merge: true
   - path: "./runbooks/CreateService.md"
     merge: true
+  - path: "./runbooks/CreateService.md"
+    merge: true

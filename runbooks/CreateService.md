@@ -2,7 +2,7 @@
 
 This runbook creates GitHub repos for a domain from the architecture specification: for each repo in that domain with `type: api` or `type: spa` (skipping `type: spa_ref`), it creates the repo from its template, runs template merge processing, builds/pushes the container when applicable, and pushes the result.
 
-**SERVICE_NAME:** The runbook clones the {{org.git_host}}/{{org.git_org}}/{{info.slug}} repo to get design specifications. `Specifications/architecture.yaml` and `Specifications/product.yaml` are used. `SERVICE_NAME` is a domain name that maps to a section of architecture.yaml. Repos within that domain with `type: api` or `type: spa` are processed; `type: spa_ref` repos are skipped. Created repo names are prefixed with `info.slug` from product.yaml (e.g. `mentorhub_mongodb_api`). Repos with an optional `publish` attribute run build/publish: `make build-publish` when `publish: make`, `npm run build-publish` when `publish: npm`, or `pipenv run build-publish` when `publish: pipenv`; repos without `publish` (e.g. libraries) are created and merged but not built or pushed. Organization and registry for git and registry login are read from `Specifications/product.yaml`.
+**SERVICE_NAME:** The runbook clones the {{org.git_host}}/{{org.git_org}}/{{info.slug}} repo to get design specifications. `Specifications/architecture.yaml` and `Specifications/product.yaml` are used. `SERVICE_NAME` is a domain name that maps to a section of architecture.yaml. Repos within that domain with `type: api` or `type: spa` are processed; `type: spa_ref` repos are skipped. Created repo names are prefixed with `info.slug` from product.yaml (e.g. `{{info.slug}}_mongodb_api`). Repos with an optional `publish` attribute run build/publish: `make build-publish` when `publish: make`, `npm run build-publish` when `publish: npm`, or `pipenv run build-publish` when `publish: pipenv`; repos without `publish` (e.g. libraries) are created and merged but not built or pushed. Organization and registry for git and registry login are read from `Specifications/product.yaml`.
 
 # Environment Requirements
 ```yaml
@@ -28,7 +28,7 @@ set -e
 # `RUNBOOK_EXEC_DIR_HOST` is provided by the Runbook Executor.
 INITIAL_DIR=$(pwd)
 REPO_HOST="${RUNBOOK_EXEC_DIR_HOST}"
-MERGE_IMAGE="ghcr.io/{{org.git_org}}/stage0_runbook_merge:latest"
+MERGE_IMAGE="ghcr.io/agile-learning-institute/stage0_runbook_merge:latest"
 # --- Clone {{info.slug}} and resolve specs path ---
 echo "Cloning {{info.slug}} for Specifications..."
 git clone "https://${GITHUB_TOKEN}@github.com/{{org.git_org}}/{{info.slug}}.git" {{info.slug}} || { echo "Failed to clone {{info.slug}}"; exit 1; }
