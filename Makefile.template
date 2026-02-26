@@ -1,4 +1,5 @@
-.PHONY: help dev deploy down open validate execute get-token container push build-publish tail
+.PHONY: help dev deploy down open validate execute get-token container push build-publish build-package publish-package delete-package tail
+ORG ?= {{org.git_org}}
 
 CONTAINER_IMAGE ?= {{org.docker_host}}/{{org.docker_org}}/{{info.slug}}_runbook_api:latest
 API_URL ?= http://localhost:{{info.base_port + 1}}/
@@ -33,6 +34,11 @@ push:
 	@echo "Pushed: $(CONTAINER_IMAGE)"
 
 build-publish: container push
+build-package: container
+publish-package: push
+delete-package:
+	@echo "Deleting container package..."
+	@gh api -X DELETE "/orgs/$(ORG)/packages/container/{{info.slug}}_runbook_api" 2>/dev/null || true
 
 dev:
 	@echo "Shutting down centralized services..."
