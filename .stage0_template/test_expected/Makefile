@@ -1,4 +1,4 @@
-.PHONY: help dev deploy down open validate execute get-token container push build-publish build-package publish-package delete-package tail
+.PHONY: help dev deploy down open validate execute get-token container push build-package publish-package delete-package tail
 ORG ?= agile-learning-institute
 
 CONTAINER_IMAGE ?= ghcr.io/agile-learning-institute/mentorhub_runbook_api:latest
@@ -33,12 +33,11 @@ push:
 	@docker push $(CONTAINER_IMAGE) 
 	@echo "Pushed: $(CONTAINER_IMAGE)"
 
-build-publish: container push
 build-package: container
 publish-package: push
 delete-package:
 	@echo "Deleting container package..."
-	@gh api -X DELETE "/orgs/$(ORG)/packages/container/mentorhub_runbook_api" 2>/dev/null || true
+	@gh api -X DELETE "/orgs//packages/container/mentorhub_runbook_api"
 
 dev:
 	@echo "Shutting down centralized services..."
