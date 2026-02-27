@@ -37,7 +37,7 @@ build-package: container
 publish-package: push
 delete-package:
 	@echo "Deleting container package..."
-	@gh api -X DELETE "/orgs/{{info.git_org}}/packages/container/{{info.slug}}_runbook_api"
+	@gh api -X DELETE "/orgs/{{org.git_org}}/packages/container/{{info.slug}}_runbook_api"
 
 dev:
 	@echo "Shutting down centralized services..."
