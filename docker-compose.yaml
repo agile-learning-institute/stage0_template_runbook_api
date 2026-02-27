@@ -17,7 +17,7 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN}
       SSH_KEY: ${SSH_KEY:-}
       MOUNT_DIR: ${MOUNT_DIR}
-      UI_HEADER: "Mentor Hub DEV Runbooks"
+      UI_HEADER: "{{info.name}} DEV Runbooks"
     volumes:
       - ./runbooks:/runbooks
       - ./execution:/execution
