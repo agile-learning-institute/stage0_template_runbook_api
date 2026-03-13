@@ -34,5 +34,6 @@ templates:
     merge: true
   - path: "./Dockerfile"
     merge: true
-  - path: "./.github/workflows/docker-push.yml"
+  - path: "./.github/workflows/docker-push.yml.template"
+    output: "./.github/workflows/docker-push.yml"
     merge: true
